@@ -10,10 +10,42 @@ import PIL.Image, PIL.ImageTk
 import time
 import _thread
 import json
-from tkinter import filedialog,messagebox
+from tkinter import filedialog, messagebox
 from videoprops import get_video_properties
 
 import client_utility as cu
+
+join_flag = False
+room_id = None
+room_members = []
+paused = False
+playing_at = 0
+total_duration = 0
+
+def read_message():
+	global join_flag, room_members, paused, playing_at, total_duration, room_id
+	print('In read message')
+	while True:
+		try:
+			if(len(cu.message_queue)>0):
+				message = json.loads(cu.message_queue.pop(0))
+				if "created" in message.keys() or "join" in message.keys():
+					join_flag = True
+					room_id = message['created']
+
+				if "room_details" in message.keys():
+					room_members = message['room_details']['members'].keys()
+					paused = message['room_details']['paused']
+					playing_at = message['room_details']['playing_at']
+					total_duration = message['room_details']['total_duration']
+
+				if "error" in message.keys():
+					tkinter.messagebox("error",message['error'])
+
+		except KeyboardInterrupt as e:
+			break
+
+_thread.start_new_thread(read_message,())
 
 class App:
 	def __init__(self, window, window_title):
@@ -25,6 +57,9 @@ class App:
 		self.window.geometry("{0}x{1}+0+0".format(self.window.winfo_screenwidth() - self.window_padding, self.window.winfo_screenheight() - self.window_padding))
 		self.window.bind('<Escape>',self.toggle_geom)
 		self.initialize()
+
+	def __del__(self):
+		print("App closed")
 
 	def toggle_geom(self,event):
 		self.window_geom=self.window.winfo_geometry()
@@ -101,13 +136,17 @@ class App:
 			pass
 
 	def display_room_info(self):
+		global room_members
 		self.clear_window()
 
 		if self.filename not in (""," ",None) and type(self.filename) is not tuple:
 			room_id_label=tkinter.Label(self.window, text="Share this room code with your friends: " + self.room_id)
 			room_id_label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
-			member_label=tkinter.Label(self.window, text="List of members in room")
+			members_text = "List of members in room: "
+			for room_member in room_members:
+				members_text += str(room_member)
+			member_label=tkinter.Label(self.window, text=members_text)
 			member_label.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
 
 			btn_start = tkinter.Button(self.window, text = "Start", command = self.player_window, width=10)
@@ -124,11 +163,11 @@ class App:
 			# self.clear_window()
 			# open video source (by default this will try to open the computer webcam)
 			self.canvas_width = self.window.winfo_screenwidth()
-			self.canvas_height = self.window.winfo_screenheight()-100 
+			self.canvas_height = self.window.winfo_screenheight() - 100
 			# self.video = VideoStreamer(self.filename, self.canvas_width, self.canvas_height)
 
 			self.video = VideoStreamer(self.filename, self.canvas_width, self.canvas_height)
-		
+
 			# Create a canvas that can fit the above video source size
 			self.canvas = tkinter.Canvas(self.window, width = self.canvas_width, height = self.canvas_height, bg='black')
 			self.canvas.pack()
@@ -149,12 +188,10 @@ class App:
 			pass
 
 	def pause(self):
-		print("pause button pressed")
-		# Get a frame from the video source
+		print("Pause button pressed")
 
 	def play(self):
-
-		print("play button pressed")
+		print("Play button pressed")
 
 	def update(self):
 
@@ -202,41 +239,45 @@ class App:
 			print("DISPLAY : Connecting to server")
 			self.server_connected, self.error_message = cu.connect_server()
 			if self.server_connected:
+				print(self.error_message)
 				self.create_or_join()
 			elif not self.server_connected:
 				tkinter.messagebox.showerror("Error",self.error_message)
 
 	def create_room(self):
-		self.create_roomCheck = cu.create_room(self.username)
-		if(self.create_roomCheck):
-			while len(cu.message_queue)==0:
+		global join_flag, room_id
+		self.create_room_check = cu.create_room(self.username)
+		if(self.create_room_check):
+			while not join_flag:
 				pass
 
-			message = json.loads(cu.message_queue.pop(0))
-
-			if "created" in message.keys():
-				self.room_id = message['created']
+			if join_flag:
+				self.room_id = room_id
+				join_flag = False
 				self.browse()
-			elif "error" in message.keys():
-				tkinter.messagebox("error",message['error'])
-				print(self.error_message)
+			else:
+				print("DISPLAY : Error creating room")
+		else:
+			print("DISPLAY : Error creating room")
+
 
 	def join_room(self):
-		valid_room_id = self.enter_room_id.get()
-		if valid_room_id and self.username:
-			join_ret = cu.join_room(self.username,valid_room_id)
-			if join_ret :
-				while(len(cu.message_queue)==0):
+		global join_flag
+		self.room_id = self.enter_room_id.get()
+		if len(self.room_id) and self.username:
+			ret_val = cu.join_room(self.username, self.room_id)
+			if ret_val :
+				while not join_flag:
 					pass
-				message = json.loads(cu.message_queue.pop(0))
-				if 'join' in message:
+
+				if join_flag:
+					join_flag = False
 					self.browse()
-				elif 'error' in message:
-					tkinter.messagebox.showerror("error",message['error'])
-					print("DISPLAY : ", message['error'])
+				else:
+					print("DISPLAY : Error joining room")
 
 			else:
-				print(join_ret)
+				print("DISPLAY : Error joining room")
 
 class VideoStreamer:
 
@@ -279,21 +320,5 @@ class VideoStreamer:
 
 # Create a window and pass it to the Application object
 App(tkinter.Tk(), "Video Party")
-
-# def read_message():
-
-#   while True:
-#     try:
-#       # print("message que")
-#       # print(cu.message_queue)
-#       if(len(cu.message_queue)>0):
-#         message = json.loads(cu.message_queue.pop(0))
-#         if "created" in message.keys():
-#           home.browse()
-#           print("display message",json.dumps(message))
-#     except KeyboardInterrupt as e:
-#       break
-
-# _thread.start_new_thread(read_message,())
 
 
