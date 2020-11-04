@@ -67,17 +67,17 @@ def join_room(username, room_id):
         print("EXCEPTION IN JOIN ROOM: " +str(e))
         return False
 
-def disconnect_server():
+def disconnect_server(username, room_id):
     global server_socket
     data = {'action_id':4, 'username':username, 'room_id':room_id}
     try:
         server_socket.send(bytes(json.dumps(data), encoding='utf8'))
         message_queue = []
-        server_socket.close()
-        return False
+        # server_socket.close()
+        return True
     except Exception as e:
         print("EXCEPTION IN DISCONNECT SERVER: " + str(e))
-        return True
+        return False
 
 def get_users_in_room():
     return users
