@@ -11,5 +11,12 @@
 - [X] window at center of screen
 - [ ] Add icons to buttons & labels
 - [ ] Use os.pardir to remember last dir in browse file
-- [ ] Display all members in waiting room
+- [X] Display all members in waiting room
 - [ ] Auto capitalize code code in Join Room
+- [ ] User servers/groups
+- [ ] Timeout for create room & join room
+- [ ] leave room button
+
+## TESTCASES
+
+- [ ] reconnect to server if connection breaks
