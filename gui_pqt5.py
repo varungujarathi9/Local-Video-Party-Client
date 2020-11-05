@@ -73,24 +73,19 @@
 #    sys.exit(app.exec_())
 
 
-
-
-
-
+from PyQt5 import uic, QtWidgets
 import sys
 
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication
-from PySide2.QtCore import QFile
+class Ui(QtWidgets.QDialog):
+    def __init__(self):
+        super(Ui, self).__init__()
+        uic.loadUi('gui.ui', self)
+        self.show()
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    file = QFile("gui.ui")
-    file.open(QFile.ReadOnly)
-    loader = QUiLoader()
-    window = loader.load(file)
-    window.show()
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    window = Ui()
     sys.exit(app.exec_())
 
+ 
 
