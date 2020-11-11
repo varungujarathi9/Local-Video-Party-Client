@@ -73,19 +73,26 @@
 #    sys.exit(app.exec_())
 
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import QtWidgets, uic
 import sys
 
-class Ui(QtWidgets.QDialog):
+class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi('gui.ui', self)
+        uic.loadUi('basic.ui', self)
+
+        self.button = self.findChild(QtWidgets.QPushButton, 'printButton') # Find the button
+        self.button.clicked.connect(self.printButtonPressed) # Remember to pass the definition/method, not the return value!
+
         self.show()
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    window = Ui()
-    sys.exit(app.exec_())
+    def printButtonPressed(self):
+        # This is executed when the button is pressed
+        print('printButtonPressed')
+
+app = QtWidgets.QApplication(sys.argv)
+window = Ui()
+app.exec_()
 
  
 
