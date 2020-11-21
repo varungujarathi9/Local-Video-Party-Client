@@ -2,7 +2,8 @@ import React from 'react'
 import { navigate} from '@reach/router'
 // import {userContext} from '../helper/usercontext'
 
-
+import NavBar from '../NavBar/NavBar'
+import Footer from '../Footer/Footer'
 import {socket} from '../helper/socketfile'
 
 export default class LandingPage extends React.Component {
@@ -64,6 +65,7 @@ export default class LandingPage extends React.Component {
         
         return (
             <div>
+                <NavBar/>
 
                 <form >
                     <label>Username</label>
@@ -75,8 +77,11 @@ export default class LandingPage extends React.Component {
                 </h6>
 
 
-
+            <Footer />
             </div>
         )
     }
 }
+
+
+
