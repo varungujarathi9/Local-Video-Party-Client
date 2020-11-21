@@ -5,7 +5,7 @@ import { navigate} from '@reach/router'
 import NavBar from '../NavBar/NavBar'
 import Footer from '../Footer/Footer'
 import {socket} from '../helper/socketfile'
-
+import { Form, Button , FormControl } from 'react-bootstrap';
 export default class LandingPage extends React.Component {
     // const user = useContext(userContext) 
     constructor(props) {
@@ -67,6 +67,10 @@ export default class LandingPage extends React.Component {
             <div>
                 <NavBar/>
 
+                <Form inline>
+                    <FormControl type="text" placeholder="Enter Username" className="mr-sm-2" />
+                    <Button variant="outline-info">Submit</Button>
+                 </Form>
                 <form >
                     <label>Username</label>
                     <input type="text" onChange={this.handleInput} ></input>
