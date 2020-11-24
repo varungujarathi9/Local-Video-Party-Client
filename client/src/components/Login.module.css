@@ -1,0 +1,13 @@
+.login{
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    top: 35%;
+}
+
+input{
+    border-radius: 5px;
+}
+label{
+    margin-right: 12px;
+}

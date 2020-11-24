@@ -1,0 +1,18 @@
+.home{
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    top: 35%;
+}
+
+.title{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.movieLogo{
+    width: 48px;
+    position: relative;
+    bottom: 10px;
+}

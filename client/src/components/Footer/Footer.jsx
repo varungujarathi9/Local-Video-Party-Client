@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { FaBeer } from 'react-icons/fa';
-import { ICON_NAME } from 'react-icons/md';
+import style from './Footer.module.css'
+
 class Footer extends Component {
   render() {
-    return <div> <p>Copyright  Local Video Party <FaBeer /></p>
-     </div>;
+    return <div className={style.footer}> @Copyright  Local Video Party <FaBeer /></div>;
   }
 } 
 
