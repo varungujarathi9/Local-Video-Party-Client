@@ -4,7 +4,7 @@ import style from './Footer.module.css'
 
 class Footer extends Component {
   render() {
-    return <div className={style.footer}> @Copyright  Local Video Party <FaBeer /></div>;
+    return <div className={style.footer}> @Copyright Video Party 2020 <FaBeer /></div>;
   }
 } 
 

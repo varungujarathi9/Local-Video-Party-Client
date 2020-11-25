@@ -96,7 +96,7 @@ export default class Login extends React.Component {
                     {this.state.userType === 'joinee' ? (
                         <div>
                             <label htmlFor='roomID'>Room ID</label>
-                            <input type='text' id='roomID' name='roomID' minLength='6' maxLength='6' onChange={this.handleRoomIDChange} ></input>
+                            <input type='text' className='roomID' name='roomID' minLength='6' maxLength='6' onChange={this.handleRoomIDChange}></input>
                         </div>
                     ) : null
                     }

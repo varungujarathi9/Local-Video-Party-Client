@@ -11,3 +11,13 @@ input{
 label{
     margin-right: 12px;
 }
+
+input[class='roomID']{
+    position: relative;
+    left: 6px;
+}
+
+button{
+    background-color: #007a5a;
+    border:#007a5a;
+}

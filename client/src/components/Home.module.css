@@ -16,3 +16,15 @@
     position: relative;
     bottom: 10px;
 }
+
+button{
+    background-color: #007a5a !important;
+    border:#007a5a !important;
+    font-weight: 600 !important;
+}
+
+button:hover{
+    background-color: chartreuse !important;
+    opacity: 0.8 !important;
+    color: black !important;
+}
