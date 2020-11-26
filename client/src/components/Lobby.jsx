@@ -6,6 +6,8 @@
 import { navigate } from '@reach/router'
 import React from 'react'
 import { serverSocket } from './helper/connection'
+import style from './Lobby.module.css'
+import { Button } from 'react-bootstrap'
 
 export default class Lobby extends React.Component {
     state = {
@@ -16,83 +18,84 @@ export default class Lobby extends React.Component {
         extension: ["mp4", "mkv", "x-msvideo", "x-matroska"],
         extensionValid: false,
         fileError: '',
-       
+        errorMsg: ''
+
     }
 
-    componentDidMount(){
-        
-        if (sessionStorage.getItem('user-type') === 'creator' || sessionStorage.getItem('user-type') === 'joinee' ){
-            this.setState({userType: sessionStorage.getItem('user-type')})
+    componentDidMount() {
+
+        if (sessionStorage.getItem('user-type') === 'creator' || sessionStorage.getItem('user-type') === 'joinee') {
+            this.setState({ userType: sessionStorage.getItem('user-type') })
         }
-        else{
+        else {
             navigate('/')
         }
 
-        if (sessionStorage.getItem('room-details') !== null || sessionStorage.getItem('room-details') !== '' ){
-            console.log(JSON.parse(sessionStorage.getItem('room-details').replace(/"/g,'\"')))
-            this.setState({roomDetails: JSON.parse(sessionStorage.getItem('room-details').replace(/"/g,'\"'))})
+        if (sessionStorage.getItem('room-details') !== null || sessionStorage.getItem('room-details') !== '') {
+            console.log(JSON.parse(sessionStorage.getItem('room-details').replace(/"/g, '\"')))
+            this.setState({ roomDetails: JSON.parse(sessionStorage.getItem('room-details').replace(/"/g, '\"')) })
         }
-        else{
+        else {
             navigate('/')
         }
 
-        if (sessionStorage.getItem('username') !== null || sessionStorage.getItem('username') !== '' ){
-            this.setState({username: sessionStorage.getItem('username')})
+        if (sessionStorage.getItem('username') !== null || sessionStorage.getItem('username') !== '') {
+            this.setState({ username: sessionStorage.getItem('username') })
         }
-        else{
+        else {
             navigate('/')
         }
 
-        if (sessionStorage.getItem('room-id') !== null || sessionStorage.getItem('room-id') !== '' ){
-            this.setState({roomID: sessionStorage.getItem('room-id')})
+        if (sessionStorage.getItem('room-id') !== null || sessionStorage.getItem('room-id') !== '') {
+            this.setState({ roomID: sessionStorage.getItem('room-id') })
         }
-        else{
+        else {
             navigate('/')
         }
 
-        serverSocket.on('update-joinee', (data)=>{
+        serverSocket.on('update-joinee', (data) => {
             console.log(data)
             sessionStorage.setItem('room-details', JSON.stringify(data))
             // sessionStorage.setItem('room-members',JSON.stringify(data['members']))
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
-                
+
             })
         })
 
-        serverSocket.on('video-started', (data)=>{
-            if (this.state.userType === 'joinee' && ( this.state.fileName === '' || this.state.fileName === null)){
+        serverSocket.on('video-started', (data) => {
+            if (this.state.userType === 'joinee' && (this.state.fileName === '' || this.state.fileName === null)) {
                 // TODO change alert to UI
                 alert('Select a file')
             }
-            else{
+            else {
                 navigate('/video-player')
             }
         })
 
-        serverSocket.on('left_room',data=>{
+        serverSocket.on('left_room', data => {
             sessionStorage.setItem('room-details', JSON.stringify(data))
             // sessionStorage.setItem('room-members',JSON.stringify(data['members']))
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
-                
-            })     
-            navigate('/')    
+
+            })
+            navigate('/')
         })
 
-        serverSocket.on('all_left',data=>{
+        serverSocket.on('all_left', data => {
             console.log(data)
             sessionStorage.setItem('room-details', JSON.stringify(data))
             // sessionStorage.setItem('room-members',JSON.stringify(data['members']))
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
-            })     
-            navigate('/')    
+            })
+            navigate('/')
         })
     }
 
 
- 
+
 
     handleFile = (e) => {
         e.preventDefault()
@@ -129,21 +132,21 @@ export default class Lobby extends React.Component {
 
     }
 
-    startVideo = () =>{
-        serverSocket.emit('start-video', {room_id:sessionStorage.getItem('room-id')})
+    startVideo = () => {
+        serverSocket.emit('start-video', { room_id: sessionStorage.getItem('room-id') })
     }
 
 
-    leaveRoom =() =>{
-        if(sessionStorage.getItem('user-type') === 'joinee'){
-            serverSocket.emit('remove-member',{username:this.state.username, roomID:this.state.roomID})
+    leaveRoom = () => {
+        if (sessionStorage.getItem('user-type') === 'joinee') {
+            serverSocket.emit('remove-member', { username: this.state.username, roomID: this.state.roomID })
         }
-        else{
-            serverSocket.emit('remove-all-member',{username:this.state.username, roomID:this.state.roomID})
+        else {
+            serverSocket.emit('remove-all-member', { username: this.state.username, roomID: this.state.roomID })
         }
     }
-    
-    
+
+
     render() {
         // let membersList = []
         // if (localStorage.getItem('roomMembers') !== null){
@@ -153,33 +156,40 @@ export default class Lobby extends React.Component {
         //     membersList = []
         // }
         // let roomDetailsString = sessionStorage.getItem('room-details').replace(/"/g, '\"')
-        var {roomDetails} = this.state
+        var { roomDetails } = this.state
         return (
-            <div>
-                
-                <label>Browse file</label><br/>
-                <input type="file" id="videofile" onChange={this.handleFile} />
+            <div className={style.lobby}>
+                <div>
+
+                <input type="file" id="videofile" onChange={this.handleFile} style={{marginLeft:"100px"}}/>
+                </div>
+               
+                    
+               
                 <div style={{ fontSize: '16px', margin: '5px' }}>
                     {this.state.extensionCheck ?
                         <div>
                             <h5 style={{ color: 'green' }}>{this.state.fileName}</h5>
-                            {sessionStorage.getItem('user-type') === 'creator' && <button onClick={this.startVideo}>Start Partying</button>}
+                            {sessionStorage.getItem('user-type') === 'creator' && <Button onClick={this.startVideo}>Start Partying</Button>}
                         </div>
 
                         : <h6 style={{ color: 'red' }}>{this.state.errorMsg}</h6>}
                 </div>
-                <button onClick={() => { navigate(-1) }}>Back</button>
                 <h4>Room I.D.</h4>
                 {this.state.roomID}
                 <h4>Room Members</h4>
-                {roomDetails !== '' && roomDetails.members.length > 0 && roomDetails.members.map(username=>{
+                {roomDetails !== '' && roomDetails.members.length > 0 && roomDetails.members.map(username => {
                     return (
                         <p key={username}>{username}</p>
                     )
                 })}
-                <button onClick={this.leaveRoom}>Leave Room</button>
+                <div>
+                    <Button onClick={() => { navigate(-1) }} style={{ position: "relative", right: "10px" }}>Back</Button>
+                    <Button onClick={this.leaveRoom}>Leave Room</Button>
+                </div>
+
             </div>
         )
-        
+
     }
 }
