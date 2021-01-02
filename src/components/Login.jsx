@@ -1,8 +1,7 @@
 import React from 'react'
 import {navigate} from '@reach/router'
-import {serverSocket} from './helper/connection'
-import { Socket } from 'socket.io-client'
-// import {createPeerConnection,sendOffer,sendAnswer,handleSignalingData} from './webrtcfile.js'
+import {serverSocket} from './helper/Connection'
+import {setCookie, getCookie} from './helper/CookieHelper'
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -18,11 +17,10 @@ export default class Login extends React.Component {
     componentDidMount(){
 
         // check if user-type is set or not
-        if (sessionStorage.getItem('user-type') === 'creator' || sessionStorage.getItem('user-type') === 'joinee' ){
-            this.setState({userType: sessionStorage.getItem('user-type')})
+        if (getCookie('user-type') === 'creator' || getCookie('user-type') === 'joinee' ){
+            this.setState({userType: getCookie('user-type')})
         }
         else{
-            sessionStorage.clear()
             navigate('/')
         }
 
@@ -54,18 +52,18 @@ export default class Login extends React.Component {
 
     handleCreateRoom = () => {
         serverSocket.on('room-created',(data)=>{
-            sessionStorage.setItem('username', this.state.username)
-            sessionStorage.setItem('room-id', data['room-id'])
-            sessionStorage.setItem('room-details', JSON.stringify(data['room-details']))
+            setCookie('username', this.state.username)
+            setCookie('room-id', data['room-id'])
+            setCookie('room-details', data['room-details'])
             navigate('/lobby')
         })
     }
 
     handleJoinRoom = () => {
         serverSocket.on('room-joined',(data)=>{
-            sessionStorage.setItem('username', this.state.username)
-            sessionStorage.setItem('room-id', this.state.roomID)
-            sessionStorage.setItem('room-details', JSON.stringify(data['room-details']))
+            setCookie('username', this.state.username)
+            setCookie('room-id', this.state.roomID)
+            setCookie('room-details', data['room-details'])
             navigate('/lobby')
         })
     }

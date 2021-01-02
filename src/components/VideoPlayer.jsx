@@ -5,8 +5,9 @@
 import { navigate } from '@reach/router'
 import React from 'react'
 import ReactPlayer from 'react-player'
-import { serverSocket } from './helper/connection'
+import { serverSocket } from './helper/Connection'
 import {startStreaming} from './helper/SimplePeerVideoPlayer.js'
+import {getCookie} from './helper/CookieHelper'
 
 export default class VideoPlayer extends React.Component{
     constructor(props){
@@ -14,7 +15,7 @@ export default class VideoPlayer extends React.Component{
         this.state={
             playing: false,
             secondsPlayed: 0,
-            lastUpdatedBy: sessionStorage.getItem('username'),
+            lastUpdatedBy: getCookie('username'),
             videoPlayer: null,
         }
         this.videoPlayerRef = React.createRef()
@@ -22,7 +23,7 @@ export default class VideoPlayer extends React.Component{
 
     componentDidMount(){
         serverSocket.on('updated-video', (data) =>{
-            if(data['pauseDetails']['username'] !== sessionStorage.getItem('username')){
+            if(data['pauseDetails']['username'] !== getCookie('username')){
                 this.setState({
                     playing: data['pauseDetails']['playing'],
                     secondsPlayed: data['pauseDetails']['progressTime'],
@@ -37,36 +38,36 @@ export default class VideoPlayer extends React.Component{
             }
         })
 
-        if(sessionStorage.getItem('user-type') === "creator"){
-            setTimeout(() => {startStreaming(JSON.parse(sessionStorage.getItem('room-details')).members);}, 3000)
+        if(getCookie('user-type') === "creator"){
+            setTimeout(() => {startStreaming(JSON.parse(getCookie('room-details')).members);}, 3000)
         }
         else{
-            startStreaming(JSON.parse(sessionStorage.getItem('room-details')).members)
+            startStreaming(JSON.parse(getCookie('room-details')).members)
         }
     }
 
     componentWillUnmount(){
-        if (this.state.lastUpdatedBy === sessionStorage.getItem('username')){
-            let pauseDetails = {'roomID':sessionStorage.getItem('room-id'),'playing':false,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':sessionStorage.getItem('username'), 'exited':true}
+        if (this.state.lastUpdatedBy === getCookie('username')){
+            let pauseDetails = {'roomID':getCookie('room-id'),'playing':false,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':getCookie('username'), 'exited':true}
             serverSocket.emit('video-update',{pauseDetails:pauseDetails})
             sessionStorage.removeItem('video_file')
         }
     }
 
     vidOnPause=()=>{
-        if (this.state.lastUpdatedBy === sessionStorage.getItem('username')){
+        if (this.state.lastUpdatedBy === getCookie('username')){
             let pauseDetails;
-            if(sessionStorage.getItem("user-type") === "creator"){
-                pauseDetails = {'roomID':sessionStorage.getItem('room-id'), 'playing':false,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':sessionStorage.getItem('username'), 'exited':false}
+            if(getCookie("user-type") === "creator"){
+                pauseDetails = {'roomID':getCookie('room-id'), 'playing':false,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':getCookie('username'), 'exited':false}
             }
             else{
-                pauseDetails = {'roomID':sessionStorage.getItem('room-id'), 'playing':false,'progressTime':null, 'username':sessionStorage.getItem('username'), 'exited':false}
+                pauseDetails = {'roomID':getCookie('room-id'), 'playing':false,'progressTime':null, 'username':getCookie('username'), 'exited':false}
             }
             serverSocket.emit('video-update',{pauseDetails:pauseDetails})
         }
 
         this.setState({
-            lastUpdatedBy: sessionStorage.getItem('username'),
+            lastUpdatedBy: getCookie('username'),
             playing: false,
             secondsPlayed: this.state.videoPlayer.getCurrentTime()
         })
@@ -74,19 +75,19 @@ export default class VideoPlayer extends React.Component{
     }
 
     vidOnPlay = () => {
-        if (this.state.lastUpdatedBy === sessionStorage.getItem('username')){
+        if (this.state.lastUpdatedBy === getCookie('username')){
             let pauseDetails;
-            if(sessionStorage.getItem("user-type") === "creator"){
-                pauseDetails = {'roomID':sessionStorage.getItem('room-id'), 'playing':true,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':sessionStorage.getItem('username'), 'exited':false}
+            if(getCookie("user-type") === "creator"){
+                pauseDetails = {'roomID':getCookie('room-id'), 'playing':true,'progressTime':this.state.videoPlayer.getCurrentTime(), 'username':getCookie('username'), 'exited':false}
             }
             else{
-                pauseDetails = {'roomID':sessionStorage.getItem('room-id'), 'playing':true,'progressTime':null, 'username':sessionStorage.getItem('username'), 'exited':false}
+                pauseDetails = {'roomID':getCookie('room-id'), 'playing':true,'progressTime':null, 'username':getCookie('username'), 'exited':false}
             }
             serverSocket.emit('video-update',{pauseDetails:pauseDetails})
         }
 
         this.setState({
-            lastUpdatedBy: sessionStorage.getItem('username'),
+            lastUpdatedBy: getCookie('username'),
             playing: true,
             secondsPlayed: this.state.videoPlayer.getCurrentTime()
         })
@@ -96,7 +97,7 @@ export default class VideoPlayer extends React.Component{
         this.setState({videoPlayer:player})
     }
     render(){
-        const videoFileUrl = sessionStorage.getItem('video_file')
+        const videoFileUrl = getCookie('video_file')
         const {playing} = this.state
 
         return(

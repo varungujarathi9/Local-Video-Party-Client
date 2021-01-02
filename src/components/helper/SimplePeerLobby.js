@@ -1,4 +1,4 @@
-import { serverSocket } from './connection'
+import { serverSocket } from './Connection'
 import Peer from "simple-peer";
 
 const TURN_SERVER_URL = '35.223.15.12:3479';
@@ -27,13 +27,13 @@ var peerConnections = {};
 function connectToAllPeers(roomDetails){
 
     Object.keys(roomDetails.members).map((username) => {
-        if(username !== sessionStorage.getItem("username")){
+        if(username !== getCookie("username")){
             // let temp = {}
             // temp[username] = new Peer({initiator: true, config:SERVER_CONFIG})
             // peerConnections = Object.assign(peerConnections, temp);
             peerConnections[username] = new Peer({initiator: true, config:SERVER_CONFIG})
             peerConnections[username].on('signal', desc => {
-                serverSocket.emit("send-offer", {desc:desc, roomID:sessionStorage.getItem("room-id"), from: sessionStorage.getItem("username"), to: username, fromType: sessionStorage.getItem("user-type")})
+                serverSocket.emit("send-offer", {desc:desc, roomID:getCookie("room-id"), from: getCookie("username"), to: username, fromType: getCookie("user-type")})
             })
             peerConnections[username].on('data', data => {
                 console.log('got a message from peer: ' + data)
@@ -43,15 +43,11 @@ function connectToAllPeers(roomDetails){
 }
 
 serverSocket.on('receive-offer', (data) => {
-    // create new connection
-    // if(peerConnections === undefined){
-    //     peerConnections = {}
-    // }
-    if(data['to'] === sessionStorage.getItem('username')){
+    if(data['to'] === getCookie('username')){
         let from = data['from']
         peerConnections[from] = new Peer({config:SERVER_CONFIG})
         peerConnections[from].on('signal', (desc) => {
-            serverSocket.emit("send-answer", {desc:desc, roomID:sessionStorage.getItem("room-id"), from:sessionStorage.getItem("username"), to:data['from'], fromType:sessionStorage.getItem("user-type")})
+            serverSocket.emit("send-answer", {desc:desc, roomID:getCookie("room-id"), from:getCookie("username"), to:data['from'], fromType:getCookie("user-type")})
         })
         peerConnections[from].on('data', data => {
             console.log('got a message from peer: ' + data)

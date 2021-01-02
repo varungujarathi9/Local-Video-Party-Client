@@ -5,8 +5,8 @@
 
 import { navigate } from '@reach/router'
 import React from 'react'
-import { serverSocket } from './helper/connection'
-// import {connectToAllPeers, getPeerConnections} from './helper/SimplePeerLobby.js'
+import { serverSocket } from './helper/Connection'
+import {setCookie, getCookie} from './helper/CookieHelper'
 
 export default class Lobby extends React.Component {
     state = {
@@ -23,30 +23,29 @@ export default class Lobby extends React.Component {
 
     componentDidMount(){
 
-        if (sessionStorage.getItem('user-type') === 'creator' || sessionStorage.getItem('user-type') === 'joinee' ){
-            this.setState({userType: sessionStorage.getItem('user-type')})
+        if (getCookie('user-type') === 'creator' || getCookie('user-type') === 'joinee' ){
+            this.setState({userType: getCookie('user-type')})
         }
         else{
             navigate('/')
         }
 
-        if (sessionStorage.getItem('room-details') !== null || sessionStorage.getItem('room-details') !== '' ){
-            // console.log(JSON.parse(sessionStorage.getItem('room-details').replace(/"/g,'\"')))
-            this.setState({roomDetails: JSON.parse(sessionStorage.getItem('room-details').replace(/"/g,'\"'))})
+        if (getCookie('room-details') !== null || getCookie('room-details') !== '' ){
+            this.setState({roomDetails: JSON.parse(getCookie('room-details'))})
         }
         else{
             navigate('/')
         }
 
-        if (sessionStorage.getItem('username') !== null || sessionStorage.getItem('username') !== '' ){
-            this.setState({username: sessionStorage.getItem('username')})
+        if (getCookie('username') !== null || getCookie('username') !== '' ){
+            this.setState({username: getCookie('username')})
         }
         else{
             navigate('/')
         }
 
-        if (sessionStorage.getItem('room-id') !== null || sessionStorage.getItem('room-id') !== '' ){
-            this.setState({roomID: sessionStorage.getItem('room-id')})
+        if (getCookie('room-id') !== null || getCookie('room-id') !== '' ){
+            this.setState({roomID: getCookie('room-id')})
         }
         else{
             navigate('/')
@@ -54,7 +53,7 @@ export default class Lobby extends React.Component {
 
         serverSocket.on('update-room-details', async (data)=>{
             // console.log(data)
-            sessionStorage.setItem('room-details', JSON.stringify(data))
+            setCookie('room-details', (data))
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
             })
@@ -65,19 +64,15 @@ export default class Lobby extends React.Component {
         })
 
         serverSocket.on('left_room',data=>{
-            sessionStorage.setItem('room-details', JSON.stringify(data))
-            // sessionStorage.setItem('room-members',JSON.stringify(data['members']))
+            setCookie('room-details', data)
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
-
             })
             navigate('/')
         })
 
         serverSocket.on('all_left',data=>{
-            // console.log(data)
-            sessionStorage.setItem('room-details', JSON.stringify(data))
-            // sessionStorage.setItem('room-members',JSON.stringify(data['members']))
+            setCookie('room-details', data)
             this.setState({
                 roomDetails: JSON.parse(JSON.stringify(data)),
             })
@@ -85,12 +80,12 @@ export default class Lobby extends React.Component {
         })
 
         serverSocket.on('receive_message',data=>{
-            sessionStorage.setItem('messages', data)
+            setCookie('messages', data)
             this.setState({
                 messages: data,
             })
         })
-        serverSocket.emit('get-all-messages',{roomID:sessionStorage.getItem('room-id')})
+        serverSocket.emit('get-all-messages',{roomID:getCookie('room-id')})
     }
 
     handleFile = (e) => {
@@ -123,7 +118,7 @@ export default class Lobby extends React.Component {
                 })
             }
             var fileUrl = URL.createObjectURL(fileList).split()
-            sessionStorage.setItem('video_file', fileUrl)
+            setCookie('video_file', fileUrl)
         }
         else {
             this.setState({
@@ -135,12 +130,12 @@ export default class Lobby extends React.Component {
 
     startVideo = async () =>{
         if(this.state.userType === 'creator'){
-            serverSocket.emit('start-video', {room_id:sessionStorage.getItem('room-id')})
+            serverSocket.emit('start-video', {room_id:getCookie('room-id')})
         }
     }
 
     leaveRoom =() =>{
-        if(sessionStorage.getItem('user-type') === 'joinee'){
+        if(getCookie('user-type') === 'joinee'){
             serverSocket.emit('remove-member',{username:this.state.username, roomID:this.state.roomID})
         }
         else{
@@ -176,7 +171,7 @@ export default class Lobby extends React.Component {
                     {this.state.extensionCheck ?
                         <div>
                             <h5 style={{ color: 'green' }}>{this.state.fileName}</h5>
-                            {sessionStorage.getItem('user-type') === 'creator' && <button onClick={this.startVideo}>Start partying</button>}
+                            {getCookie('user-type') === 'creator' && <button onClick={this.startVideo}>Start partying</button>}
                         </div>
 
                         : <h6 style={{ color: 'red' }}>{this.state.errorMsg}</h6>}

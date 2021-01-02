@@ -1,20 +1,21 @@
 import { navigate } from '@reach/router'
 import React from 'react'
+import {setCookie, removeAllCookies} from './helper/CookieHelper'
 
-export default class Home extends React.Component{    
-    
+export default class Home extends React.Component{
+
     componentDidMount(){
-        // clear localStorage on coming back to homepage
-        sessionStorage.clear()
+        // clear cookies on coming back to homepage
+        removeAllCookies()
     }
 
     navigateToLogin = (userType) => (event) => {
-        sessionStorage.setItem('user-type', userType)
+        setCookie('user-type', userType)
         navigate('/login')
     }
-   
+
     render(){
-        
+
         return(
             <div>
                 <h1>Lets Party!!</h1>

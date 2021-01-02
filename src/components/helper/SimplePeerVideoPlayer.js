@@ -1,5 +1,6 @@
-import { serverSocket } from './connection'
+import { serverSocket } from './Connection'
 import Peer from "simple-peer";
+import {getCookie} from './CookieHelper'
 
 const TURN_SERVER_URL = '35.223.15.12:3479';
 const TURN_SERVER_USERNAME = 'videoparty';
@@ -32,9 +33,7 @@ function addMedia (joineePC) {
 }
 
 function startStreaming(roomMembers){
-    // if creator, create peer connection with each member
-    // elseif joinee, create peer connection with creator only
-    let userType = sessionStorage.getItem("user-type")
+    let userType = getCookie("user-type")
     if(userType === 'creator'){
         //  create stream object
         videoPlayer = document.querySelector('video')
@@ -45,13 +44,12 @@ function startStreaming(roomMembers){
             stream = videoPlayer.captureStream()
         }
 
-        //  create peer connection with each member
         Object.keys(roomMembers).map((username) => {
             // check if username same as own username
-            if(username !== sessionStorage.getItem("username")){
+            if(username !== getCookie("username")){
                 peerConnections[username] = {peerConnectionObject: new Peer({initiator: true, config:SERVER_CONFIG}), streamAdded: false}
                 peerConnections[username]['peerConnectionObject'].on('signal', (desc) => {
-                    serverSocket.emit("send-offer", {desc:desc, roomID:sessionStorage.getItem("room-id"), from: sessionStorage.getItem("username"), to: username,})
+                    serverSocket.emit("send-offer", {desc:desc, roomID:getCookie("room-id"), from: getCookie("username"), to: username,})
                 })
             }
             return (null)
@@ -61,43 +59,14 @@ function startStreaming(roomMembers){
     else if(userType === 'joinee'){
         creatorPC = new Peer({config:SERVER_CONFIG})
         creatorPC.on('signal', (desc) => {
-            serverSocket.emit("send-answer", {desc:desc, roomID:sessionStorage.getItem("room-id"), from: sessionStorage.getItem("username")})
+            serverSocket.emit("send-answer", {desc:desc, roomID:getCookie("room-id"), from: getCookie("username")})
         })
     }
-
-    // // create peer connection for each member
-    // // send offer to each member
-
-    // if(sessionStorage.getItem("user-type") === "joinee"){
-    //     creatorPC = new Peer({config:SERVER_CONFIG})
-    //     creatorPC.on('signal', desc => {
-    //         serverSocket.emit("send-offer", {desc:desc, roomID:sessionStorage.getItem("room-id")})
-    //     })
-    //     creatorPC.on('stream', stream => {
-    //         videoPlayer = document.querySelector('video')
-    //         if ('srcObject' in videoPlayer) {
-    //             videoPlayer.srcObject = stream
-    //         } else {
-    //             videoPlayer.src = window.URL.createObjectURL(stream) // for older browsers
-    //         }
-    //     })
-
-    // }
-    // else if(sessionStorage.getItem("user-type") === "creator"){
-
-    //     joineePC = new Peer({initiator:true, config:SERVER_CONFIG})
-    //     joineePC.on('signal', desc => {
-    //         serverSocket.emit("send-offer", {desc:desc, roomID:sessionStorage.getItem("room-id")})
-    //     })
-    // }
-    // else{
-    //     console.error("User type error")
-    // }
 }
 
 serverSocket.on('receive-offer', (data) => {
-    if(sessionStorage.getItem("user-type") === "joinee"){
-        if(data['to'] === sessionStorage.getItem('username')){
+    if(getCookie("user-type") === "joinee"){
+        if(data['to'] === getCookie('username')){
             // add signalling desc of creator
             creatorPC.signal(data['desc'])
 
@@ -117,7 +86,7 @@ serverSocket.on('receive-offer', (data) => {
 
 serverSocket.on('receive-answer', (data) => {
     // receive answer from joinees
-    if(sessionStorage.getItem("user-type") === "creator"){
+    if(getCookie("user-type") === "creator"){
         let from = data["from"]
         peerConnections[from]['peerConnectionObject'].signal(data['desc'])
         if(peerConnections[from]['streamAdded'] === false){
